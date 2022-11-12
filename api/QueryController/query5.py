@@ -10,21 +10,16 @@ class Query5:
     def execute(self):
         con = PostgresConnection().getConnection()
         cur = con.cursor()
-        query = """SELECT store_dim.district as "district",time_dim.year,SUM(fact_table.total_price) "sales"
-FROM star.fact_table
-JOIN star.store_dim ON
-store_dim.store_key=fact_table.store_key
-JOIN star.time_dim ON
-time_dim.time_key=fact_table.time_key
-WHERE store_dim.district='BARISAL'AND
-time_dim.year='2015'
-GROUP BY time_dim.year,store_dim.district
+        query = """SELECT bill_info.DAY,COUNT(bill_info.APPOINT_NO) AS patient_count
+        FROM hospitals.bill_info 
+        GROUP BY (bill_info.DAY)
+        ORDER BY patient_count DESC
 """
 
         cur.execute(query)
         result = cur.fetchall()
-        pd_data = pd.DataFrame(list(result), columns=['district','Year', 'sales'])
-        pd_data['sales'] = pd_data['sales'].astype('float64')
+        pd_data = pd.DataFrame(list(result), columns=['DAY', 'patient_count'])
+        pd_data['patient_count'] = pd_data['patient_count'].astype('float64')
         pd_data = pd_data.dropna()
         # print(pd_data)
         return pd_data.to_dict(orient='records')
